@@ -22,10 +22,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.canelmas.let.AskPermission;
-import com.canelmas.let.DeniedPermission;
-import com.canelmas.let.Let;
-import com.canelmas.let.RuntimePermissionListener;
-import com.canelmas.let.RuntimePermissionRequest;
+
 /**
  * Created by subodhnijsure on 12/7/17.
  */
@@ -39,7 +36,6 @@ public abstract class LocationAwareActivity extends AppCompatActivity {
     public static final long UPDATE_INTERVAL_AFTER_LOCK_IN_MILLISECONDS = 60000;
     public static final long FAST_UPDATE_INTERVAL_AFTER_LOCK_IN_MILLISECONDS =
             UPDATE_INTERVAL_AFTER_LOCK_IN_MILLISECONDS / 2;
-    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private final static int DISPLACEMENT_IN_METERS = 10;
     public static String TAG = LocationAwareActivity.class.getSimpleName();
     protected LocationRequest fineLocationRequest;
@@ -154,14 +150,27 @@ public abstract class LocationAwareActivity extends AppCompatActivity {
         }
     }
 
-    protected void stopLocationUpdates() {
+    public void stopLocationUpdates() {
         if (locationProviderClient != null) {
             try {
-                final Task<Void> voidTask = locationProviderClient.removeLocationUpdates(locationCallback);
+                LocationCallback cL = new LocationCallback() {
+                    @Override
+                    public void onLocationResult(LocationResult locationResult) {
+                        super.onLocationResult(locationResult);
+                        Log.d(TAG,"cL onLocationResult  " + locationResult);
+                    }
+
+                    @Override
+                    public void onLocationAvailability(LocationAvailability locationAvailability) {
+                        super.onLocationAvailability(locationAvailability);
+                        Log.d(TAG,"cL onLocationAvailability  " + locationAvailability);
+                    }
+                };
+                final Task<Void> voidTask = locationProviderClient.removeLocationUpdates(cL);
                 if (voidTask.isSuccessful()) {
-                    Log.d(TAG,"StopLocation updates successful!");
+                    Log.d(TAG,"StopLocation updates successful! ");
                 } else {
-                    Log.d(TAG,"StopLocation updates unsuccessful!");
+                    Log.d(TAG,"StopLocation updates unsuccessful! " + voidTask.toString());
                 }
             }
             catch (SecurityException exp) {
